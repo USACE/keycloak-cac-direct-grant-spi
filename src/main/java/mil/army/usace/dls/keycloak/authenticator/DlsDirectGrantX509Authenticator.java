@@ -5,11 +5,12 @@
  */
 package mil.army.usace.dls.keycloak.authenticator;
 
-
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import mil.army.usace.erdc.crrel.cryptoj.UsaceCrypto;
 import mil.army.usace.erdc.crrel.cryptoj.x509.DodX509Certificate;
 
@@ -27,26 +28,27 @@ import java.util.logging.*;
  *
  * @author rsgoss
  */
-public class DlsDirectGrantX509Authenticator implements Authenticator{
-    private final String email="";
+public class DlsDirectGrantX509Authenticator implements Authenticator {
+    private final String email = "";
     private final String firstName = "";
     private final String lastName = "";
     private final Logger log = Logger.getLogger("DlsDirectGrantX509Authenticator");
 
     @Override
     public void authenticate(AuthenticationFlowContext authenticationFlowContext) {
-        try{
+        try {
             HttpRequest req = authenticationFlowContext.getHttpRequest();
             List<String> certStrList = req.getHttpHeaders().getRequestHeader("SSL_CLIENT_CERT");
-            if(certStrList.size()==1){
+            if (certStrList.size() == 1) {
                 String pemCert = certStrList.get(0);
                 X509Certificate cert = UsaceCrypto.getCertFromPEM(pemCert);
                 DodX509Certificate dodCert = new DodX509Certificate(cert);
                 KeycloakSession session = authenticationFlowContext.getSession();
                 RealmModel realm = authenticationFlowContext.getRealm();
-                UserModel existingUser = session.users().getUserByUsername(dodCert.getName(), realm);
-                if (existingUser==null){
-                    UserModel federatedUser = session.users().addUser(realm, dodCert.getName());
+                String username = extractCNFromNormalizedDN(dodCert.SUBJECT_CN);
+                UserModel existingUser = session.users().getUserByUsername(username, realm);
+                if (existingUser == null) {
+                    UserModel federatedUser = session.users().addUser(realm, username);
                     federatedUser.setEnabled(true);
                     federatedUser.setEmail(email);
                     federatedUser.setFirstName(firstName);
@@ -55,18 +57,17 @@ public class DlsDirectGrantX509Authenticator implements Authenticator{
                     federatedUser.setSingleAttribute("cacUID", dodCert.EDIPI.toString());
                     federatedUser.setSingleAttribute("pivID", dodCert.getPivId());
                     authenticationFlowContext.setUser(federatedUser);
-                }
-                else{
-                    log.info(String.format("DLS SPI LOG -> Existing user detected with %s '%s' .", UserModel.USERNAME, existingUser.getUsername()));
+                } else {
+                    log.info(String.format("DLS SPI LOG -> Existing user detected with %s '%s' .", UserModel.USERNAME,
+                            existingUser.getUsername()));
                     authenticationFlowContext.setUser(existingUser);
                 }
             } else {
                 authenticationFlowContext.failure(AuthenticationFlowError.INVALID_CLIENT_CREDENTIALS);
             }
             authenticationFlowContext.success();
-        }
-        catch(IOException |  CertificateException ex){
-            throw new AuthenticationFlowException(ex,AuthenticationFlowError.INTERNAL_ERROR);
+        } catch (IOException | CertificateException ex) {
+            throw new AuthenticationFlowException(ex, AuthenticationFlowError.INTERNAL_ERROR);
         }
     }
 
@@ -88,12 +89,23 @@ public class DlsDirectGrantX509Authenticator implements Authenticator{
 
     @Override
     public void setRequiredActions(KeycloakSession ks, RealmModel rm, UserModel um) {
-        // If configuredFor() always returns true, this shouldn't be called, so do nothing
+        // If configuredFor() always returns true, this shouldn't be called, so do
+        // nothing
     }
 
     @Override
     public void close() {
         System.out.println("DLS SPI LOG -> Got DLSAuthenticator Close");
     }
-    
+
+    private String extractCNFromNormalizedDN(String normDN) {
+        Pattern pattern = Pattern.compile(".*CN=?(.+[0-9])(?:,|$)");
+        Matcher matcher = pattern.matcher(normDN);
+        while (matcher.find()) {
+            String CN = matcher.group(1);
+            return CN;
+        }
+        return "";
+    }
+
 }
