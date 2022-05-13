@@ -46,8 +46,9 @@ public class DlsDirectGrantX509Authenticator implements Authenticator {
                 KeycloakSession session = authenticationFlowContext.getSession();
                 RealmModel realm = authenticationFlowContext.getRealm();
                 String username = extractCNFromNormalizedDN(dodCert.SUBJECT_CN);
-                UserModel existingUser = session.users().getUserByUsername(username, realm);
+                UserModel existingUser = session.users().getUserByUsername(realm, username);
                 if (existingUser == null) {
+                    log.info(String.format("DLS SPI LOG -> creating user %s.", username));
                     UserModel federatedUser = session.users().addUser(realm, username);
                     federatedUser.setEnabled(true);
                     federatedUser.setEmail(email);
