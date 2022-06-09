@@ -27,7 +27,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import mil.army.usace.erdc.crrel.cryptoj.x509.CertificateInfo.ExtendedKeyUsage;
 import mil.army.usace.erdc.crrel.cryptoj.x509.CertificateInfo.KeyUsage;
@@ -49,6 +51,34 @@ public class DodX509Certificate {
     public final String SUBJECT_DN;
     public final Long EDIPI;
     public final String ALIAS;
+    public final int RFC_EMAIL=1;
+    public final boolean CHECK_POLICY = true;
+    
+    //https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/txt/unclass-pki_interop_assurance_levels.txt
+    //dod approved assurance levels
+    Map<String, String> dodPolicyMap = new HashMap<String, String>() {{
+        put("2.16.840.1.101.2.1.11.5","id-US-dod-medium");			
+        put("2.16.840.1.101.2.1.11.9","id-US-dod-mediumhardware");				
+        put("2.16.840.1.101.2.1.11.10","id-US-dod-PIV-Auth");		
+        put("2.16.840.1.101.2.1.11.17","id-US-dod-mediumNPE");				
+        put("2.16.840.1.101.2.1.11.18","id-US-dod-medium-2048");				
+        put("2.16.840.1.101.2.1.11.19","id-US-dod-mediumHardware-2048");				
+        put("2.16.840.1.101.2.1.11.20","id-US-dod-PIV-Auth-2048");				
+        put("2.16.840.1.101.2.1.11.31","id-US-dod-peerInterop");				
+        put("2.16.840.1.101.2.1.11.36","id-US-dod-mediumNPE-112");				
+        put("2.16.840.1.101.2.1.11.37","id-US-dod-mediumNPE-128");	
+        put("2.16.840.1.101.2.1.11.38","id-US-dod-mediumNPE-192");	
+        put("2.16.840.1.101.2.1.11.39","id-US-dod-medium-112");				
+        put("2.16.840.1.101.2.1.11.40","id-US-dod-medium-128");	
+        put("2.16.840.1.101.2.1.11.41","id-US-dod-medium-192");	
+        put("2.16.840.1.101.2.1.11.42","id-US-dod-mediumHardware-112");				
+        put("2.16.840.1.101.2.1.11.43","id-US-dod-mediumHardware-128");
+        put("2.16.840.1.101.2.1.11.44","id-US-dod-mediumHardware-192");
+        put("2.16.840.1.101.2.1.11.59","id-US-dod-admin");
+        put("2.16.840.1.101.2.1.11.60","id-US-dod-internalNPE-112");
+        put("2.16.840.1.101.2.1.11.61","id-US-dod-internalNPE-128");
+        put("2.16.840.1.101.2.1.11.62","id-US-dod-internalNPE-192");
+    }};
    
     
     public DodX509Certificate(X509Certificate cert) throws IOException, CertificateParsingException, CertificateEncodingException, CertificateException{
@@ -59,65 +89,32 @@ public class DodX509Certificate {
         this.ALIAS=alias;
         cert.checkValidity(); //@TODO is this checked by jetty?.  What about cert.verify()
         CertificateInfo certInfo = new CertificateInfo(cert);
+        if(CHECK_POLICY){
+            checkDodAssurancePolicies(certInfo);            
+        }
+        
         this.SUBJECT_DN=certInfo.getSubjectDN();
         this.SUBJECT_CN=certInfo.getRDN("CN",RDN.SUBJECT);
         this.EDIPI=certInfo.getEDIPI(SUBJECT_CN);        
         this.cert=cert;
         this.SERIAL_NUMBER=cert.getSerialNumber();
-        //this.SUBJECT_ALTERNATIVE_NAMES=certInfo.getSubjectAlternativeNames();
-        /*
-        this.ISSUER_CN=certInfo.getRDN("CN", RDN.ISSUER);
-        this.SUBJECT_ALTERNATIVE_NAMES=certInfo.getSubjectAlternativeNames();
-        this.CRL_DISTRIBUTION_POINTS=certInfo.getCrlDistributionPoints();
-        this.AUTHORITY_INFORMATION_ACCESS=certInfo.getAuthorityInformationAccess();
-        this.CERT_KEY_USAGE=certInfo.getCertKeyUsage();
-        this.EXTENDED_KEY_USAGE=certInfo.getExtendedKeyUsage();
-        this.CERTIFICATE_POLICIES=certInfo.getCertificatePolicies();
-        this.checkValidForNonRepudiation();
-        this.checkValidForTlsWebClientAuthentication();
-        */
-
-        //this.validateOCSP();
     }
     
     
     
-    //@TODO fix this....get from OID
-    public String getEmail() throws IOException, CertificateParsingException{
+   public String getEmail() throws IOException, CertificateParsingException{
         CertificateInfo certInfo = new CertificateInfo(cert);
-        for(String altName : certInfo.getSubjectAlternativeNames()){
-            if(altName.contains("@mail.mil")){
-                return altName;
-            }
-        }
+        Map<Integer,String> altNames = certInfo.getSubjectAlternativeNameMap();
+            if (altNames.containsKey(RFC_EMAIL)){
+                return altNames.get(RFC_EMAIL);
+            } 
         return null;
     }
+    
     
     public String getName() {
         return this.SUBJECT_CN.substring(0,this.SUBJECT_CN.lastIndexOf("."));
     }
-    
-    /*
-    public Boolean validateOCSP()  {
-        boolean isValid=false;
-        try{
-            CertificateInfo certInfo = new CertificateInfo(cert);
-            HashMap<String,String> AUTHORITY_INFORMATION_ACCESS = certInfo.getAuthorityInformationAccess();
-            URL url = new URL(AUTHORITY_INFORMATION_ACCESS.get(AuthorityInformationAccessCodes.CAISSUERS_URL.getOid()));
-            URL ocspUrl = new URL(AUTHORITY_INFORMATION_ACCESS.get(AuthorityInformationAccessCodes.OCSP_URL.getOid()));
-            ByteArrayOutputStream bais = new ByteArrayOutputStream();
-            try(InputStream is = url.openStream ()){
-                CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-                X509Certificate cacert=(X509Certificate)certFactory.generateCertificate(is);
-                isValid=OCSPValidator.isValid(this.cert, cacert, ocspUrl);
-            }
-        }
-        catch(IOException | CertificateException | OCSPException | OperatorCreationException ex){
-            logger.error(String.format("Error Validating Certificate: %s",ex.getMessage()));
-        }
-        return isValid;
-    }
-    */
     
     public String getPivId() throws IOException, CertificateParsingException{
         CertificateInfo certInfo = new CertificateInfo(cert);
@@ -129,32 +126,6 @@ public class DodX509Certificate {
         }
         throw new CertificateParsingException("Unable to find PIV Number");
     }
-            
-            
-    
-    
-    /*
-    private void checkForCertInCache(Long edipi){
-        //certCache.get(edipi);
-    }
-    
-    private Boolean isValidCientAuth(){
-        
-        return true;
-    }
-    
-    
-    private Boolean isRevoked(){
-        //check against crl
-        return true;
-    }
-    */
-    /*
-    private Boolean isIssuedByDod(){
-        if(CERTIFICATE_POLICIES.containsAll(new List))
-        return false;
-    }
-    */
     
     private void checkValidForNonRepudiation(CertificateInfo certInfo) throws CertificateException{
         //@TODO...probably should work with list of enum not strings....
@@ -169,7 +140,19 @@ public class DodX509Certificate {
         }
     }
     
-    
+    private void checkDodAssurancePolicies(CertificateInfo certInfo) throws CertificateException {
+        try{
+            List<String> policies = certInfo.getCertificatePolicies();
+            for(String key:dodPolicyMap.keySet()){
+                if (policies.contains(key)){
+                    return;
+                }
+            }
+            throw new CertificateException("CERTIFICATE DOES NOT INCLUDE DOD ASSURANCE POLICY");
+        } catch(IOException ex){
+            throw new CertificateException("ERROR READING CERTIFICATE POLICIES"); 
+        }
+    }
     
     
     @Override

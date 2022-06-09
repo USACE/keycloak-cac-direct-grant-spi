@@ -28,7 +28,6 @@ import java.util.logging.*;
  * @author rsgoss
  */
 public class DlsDirectGrantX509Authenticator implements Authenticator{
-    private final String email="";
     private final String firstName = "";
     private final String lastName = "";
     private final Logger log = Logger.getLogger("DlsDirectGrantX509Authenticator");
@@ -48,7 +47,7 @@ public class DlsDirectGrantX509Authenticator implements Authenticator{
                 if (existingUser==null){
                     UserModel federatedUser = session.users().addUser(realm, dodCert.getName());
                     federatedUser.setEnabled(true);
-                    federatedUser.setEmail(email);
+                    federatedUser.setEmail(dodCert.getEmail());
                     federatedUser.setFirstName(firstName);
                     federatedUser.setLastName(lastName);
                     federatedUser.setSingleAttribute("subjectDN", dodCert.SUBJECT_DN);
