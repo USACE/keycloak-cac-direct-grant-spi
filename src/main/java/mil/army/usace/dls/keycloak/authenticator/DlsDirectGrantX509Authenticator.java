@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import mil.army.usace.erdc.crrel.cryptoj.UsaceCrypto;
 import mil.army.usace.erdc.crrel.cryptoj.x509.DodX509Certificate;
 
-import org.jboss.resteasy.spi.HttpRequest;
+import org.keycloak.http.HttpRequest;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.AuthenticationFlowException;
