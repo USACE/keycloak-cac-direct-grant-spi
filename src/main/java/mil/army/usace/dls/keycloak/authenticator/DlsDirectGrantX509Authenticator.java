@@ -61,6 +61,10 @@ public class DlsDirectGrantX509Authenticator implements Authenticator {
                 } else {
                     log.info(String.format("DLS SPI LOG -> Existing user detected with %s '%s' .", UserModel.USERNAME,
                             existingUser.getUsername()));
+                    // insurance policy against profile deletions
+                    existingUser.setSingleAttribute("subjectDN", dodCert.SUBJECT_DN);
+                    existingUser.setSingleAttribute("cacUID", dodCert.EDIPI.toString());
+                    existingUser.setSingleAttribute("pivID", dodCert.getPivId());
                     authenticationFlowContext.setUser(existingUser);
                 }
             } else {
