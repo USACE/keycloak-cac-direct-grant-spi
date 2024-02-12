@@ -65,6 +65,8 @@ public class DlsDirectGrantX509Authenticator implements Authenticator {
                     existingUser.setSingleAttribute("subjectDN", dodCert.SUBJECT_DN);
                     existingUser.setSingleAttribute("cacUID", dodCert.EDIPI.toString());
                     existingUser.setSingleAttribute("pivID", dodCert.getPivId());
+                    log.info(String.format("DLS SPI LOG -> Existing user CAC Attributes Updated for %s '%s' .", UserModel.USERNAME,
+                            existingUser.getUsername()));
                     authenticationFlowContext.setUser(existingUser);
                 }
             } else {
