@@ -5,7 +5,6 @@
  */
 package mil.army.usace.erdc.crrel.cryptoj.x509;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -16,30 +15,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.security.auth.x500.X500Principal;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DERUTF8String;
 import org.bouncycastle.asn1.DLSequence;
-import org.bouncycastle.asn1.x509.AccessDescription;
-import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
-import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.CertificatePolicies;
-import org.bouncycastle.asn1.x509.DistributionPoint;
-import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.PolicyInformation;
-//import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.cert.X509CertificateHolder;
-//import org.bouncycastle.x509.extension.X509ExtensionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -307,44 +295,12 @@ public class CertificateInfo {
         return polList;
     }
     
-    /*
-    public List<String> getCrlDistributionPoints() throws CertificateParsingException, IOException {
-        byte[] crldpExt = cert.getExtensionValue(X509Extensions.CRLDistributionPoints.getId());
-        if (crldpExt == null) {
-            return new ArrayList<String>();
-        }
-        ASN1InputStream oAsnInStream = new ASN1InputStream(new ByteArrayInputStream(crldpExt));
-        ASN1Primitive derObjCrlDP = oAsnInStream.readObject();
-        DEROctetString dosCrlDP = (DEROctetString) derObjCrlDP;
-        byte[] crldpExtOctets = dosCrlDP.getOctets();
-        ASN1InputStream oAsnInStream2 = new ASN1InputStream(new ByteArrayInputStream(crldpExtOctets));
-        ASN1Primitive derObj2 = oAsnInStream2.readObject();
-        CRLDistPoint distPoint = CRLDistPoint.getInstance(derObj2);
-        List<String> crlUrls = new ArrayList<String>();
-        for (DistributionPoint dp : distPoint.getDistributionPoints()) {
-            DistributionPointName dpn = dp.getDistributionPoint();
-            // Look for URIs in fullName
-            if (dpn != null && dpn.getType() == DistributionPointName.FULL_NAME) {
-                GeneralName[] genNames = GeneralNames.getInstance(dpn.getName()).getNames();
-                // Look for an URI
-                for (int j = 0; j < genNames.length; j++) {
-                    if (genNames[j].getTagNo() == GeneralName.uniformResourceIdentifier) {
-                        String url = DERIA5String.getInstance(genNames[j].getName()).getString();
-                        crlUrls.add(url);
-                    }
-                }
-            }
-        }
-        return crlUrls;
-    }
-    */
+    public Map<Integer,String> getSubjectAlternativeNameMap() throws IOException, CertificateParsingException {
+        Map<Integer,String> identities = new HashMap<>();
     
-    public List<String> getSubjectAlternativeNames() throws IOException, CertificateParsingException {
-        List<String> identities = new ArrayList<String>();
-        
         Collection<List<?>> altNames = cert.getSubjectAlternativeNames();
         if (altNames == null)
-            return Collections.emptyList();
+            return Collections.emptyMap();
         for (List item : altNames) {
             Integer type = (Integer) item.get(0);
             if (type == 0){
@@ -357,41 +313,22 @@ public class CertificateInfo {
                 if(encoded instanceof DERUTF8String){
                     identity = ((DERUTF8String) encoded).getString();                
                 } else if (encoded instanceof DEROctetString) {
-                    //DEROctetString octString = ((DEROctetString)encoded);
-                    //InputStream inStream = octString.getOctetStream();
-                    //ASN1InputStream asnInputStream = new ASN1InputStream(decoder);
-                    //ASN1Primitive derObject = decoder.readObject();
-                    //if (derObject instanceof ASN1String){
-                    //    ASN1String s = (ASN1String)derObject;
-                    //    identity = s.getString();
-                    //}
                     logger.warn("DEROctet Decoding is currently unsupported for Subject Alternative Name");
                 } else {
                    throw new CertificateParsingException("Invalid Subject Alternative Name");  
                 }
-                identities.add(identity);
+                identities.put(type,identity);
             }
-            else if (type==1){
-                identities.add((String)item.get(1));
+            else if (type==1 || type == 2 || type == 6){
+                identities.put(type,(String)item.get(1));
             }
         }
         return identities;
     }
     
-    /*
-    public HashMap<String,String> getAuthorityInformationAccess() throws IOException{
-        HashMap<String,String> aiaMap = new HashMap<>();
-        byte[] bytes = cert.getExtensionValue(X509Ext.AuthorityInformationAccess.getOid());
-        ASN1Primitive ap = X509ExtensionUtil.fromExtensionValue(bytes);
-        ASN1Sequence seq = ASN1Sequence.getInstance(ap);
-        AuthorityInformationAccess access = AuthorityInformationAccess.getInstance(seq);
-        AccessDescription[] ads = access.getAccessDescriptions();
-        for(AccessDescription ad:ads){
-            GeneralName gn = ad.getAccessLocation();
-            aiaMap.put(ad.getAccessMethod().getId(),gn.getName().toString());
-         }
-        return aiaMap;
+    public List<String> getSubjectAlternativeNames() throws IOException, CertificateParsingException {
+        Map<Integer,String> identities = this.getSubjectAlternativeNameMap();
+        return new ArrayList(identities.values());
     }
-    */
     
 }

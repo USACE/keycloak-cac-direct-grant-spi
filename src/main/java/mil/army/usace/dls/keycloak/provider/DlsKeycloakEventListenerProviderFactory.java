@@ -26,7 +26,7 @@ public class DlsKeycloakEventListenerProviderFactory implements EventListenerPro
 
     @Override
     public void init(Config.Scope scope) {
-        System.out.println("CWBI SPI => Initializing Factory");
+        System.out.println("CWBI SPI => V1.1 Initializing Factory");
     }
 
     @Override

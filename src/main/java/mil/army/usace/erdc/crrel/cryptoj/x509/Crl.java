@@ -30,18 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Crl {
     
-    /*
-    - getCrlFiles
-    - extractCrl
-    - loadCrl (load to hashmap?)
-    - validateCrl(cert)
-    - validateOcsp(cert)
-    - getOcspUrl
-    
-    //
-    - create SpringSecurity filter for DOD CAC
-    
-    */
+    public static String CRA_ZIP;
     
     public final HashMap<BigInteger,String> revokedCertsHash=new HashMap<>();
     
@@ -49,7 +38,7 @@ public class Crl {
     
     public Crl(){
         try{
-            File craDir= new File("C:\\Users\\k3endrsg\\Downloads\\ALLCRLZIP");
+            File craDir= new File(CRA_ZIP);
             List<File> crlFiles= getCrlFiles(craDir);
             for(File crlFile : crlFiles){
                 loadCrl(crlFile);
