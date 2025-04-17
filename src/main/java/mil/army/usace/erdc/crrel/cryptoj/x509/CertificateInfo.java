@@ -351,8 +351,8 @@ public class CertificateInfo {
                 ASN1InputStream decoder = new ASN1InputStream((byte[]) item.toArray()[1]);
                 ASN1Encodable encoded = decoder.readObject();
                 encoded = ((DLSequence) encoded).getObjectAt(1);
-                encoded = ((ASN1TaggedObject) encoded).getObject();
-                encoded = ((ASN1TaggedObject) encoded).getObject();
+                encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
+                encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
                 String identity="";
                 if(encoded instanceof DERUTF8String){
                     identity = ((DERUTF8String) encoded).getString();                

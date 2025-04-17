@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
   <parent>
     <artifactId>keycloak-parent</artifactId>
     <groupId>org.keycloak</groupId>
     <version>11.0.3</version>
     <relativePath>../pom.xml/pom.xml</relativePath>
   </parent>
+
   <modelVersion>4.0.0</modelVersion>
-  <groupId>mil.army.usace</groupId>
+  <groupId>usace.army.mil</groupId>
   <artifactId>dls_keycloak_plugins</artifactId>
   <name>DLS Keycloak Plugins</name>
   <version>1.0-SNAPSHOT</version>
+
   <build>
+    <!-- Artifact Name -->
     <finalName>dls-keycloak-plugins</finalName>
+
+    <!-- Plugins -->
     <plugins>
+
+
       <plugin>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-maven-plugin</artifactId>
@@ -21,6 +29,7 @@
           <skip>false</skip>
         </configuration>
       </plugin>
+
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.2.4</version>
@@ -44,15 +53,24 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+
     </plugins>
+
+    <!-- Build -->
   </build>
+
+  <!-- Dependencies -->
   <dependencies>
+
+    <!-- Core Keycloak  -->
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-core</artifactId>
       <version>11.0.3</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- Keycloak Server SPI -->
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-server-spi</artifactId>
