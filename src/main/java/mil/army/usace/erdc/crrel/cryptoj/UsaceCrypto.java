@@ -48,14 +48,14 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
-import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.decrypt;
-import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.decryptWithIv;
-import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.encrypt;
-import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.encryptWithIv;
+// import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.decrypt;
+// import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.decryptWithIv;
+// import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.encrypt;
+// import static mil.army.usace.erdc.crrel.cryptoj.CryptoUtils.encryptWithIv;
 
 
-import mil.army.usace.erdc.crrel.cryptoj.x509.DodX509Certificate;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+// import mil.army.usace.erdc.crrel.cryptoj.x509.DodX509Certificate;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
@@ -68,11 +68,11 @@ import org.bouncycastle.util.io.pem.PemReader;
 public class UsaceCrypto {
     
     static {
-        java.security.Security.addProvider(new BouncyCastleProvider()); //used for SHA256withRSA signing
+        java.security.Security.addProvider(new BouncyCastleFipsProvider()); //used for SHA256withRSA signing
     }
     
-    private final Key appKey;
-    private final KeyPair systemKeyPair;
+    // private final Key appKey;
+    // private final KeyPair systemKeyPair;
     private final int iterations=4096;
     private final int ivLength=16;
     private final int signatureLength=256;
@@ -101,119 +101,119 @@ public class UsaceCrypto {
     }
     
     
-    public UsaceCrypto(String appKeyFilePath, String appKeyPassword, String appKeyAlias, String appKeyType,
-                     String systemKeyFilePath, String systemKeyFilePassword, String systemKeyAlias, String systemKeyType) throws KeyStoreException, FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException{
-        appKey=getKey(appKeyFilePath,appKeyPassword,appKeyAlias,appKeyType);
-        systemKeyPair=getKeyPair(systemKeyFilePath,systemKeyFilePassword,systemKeyAlias,systemKeyType);
-    }
+    // public UsaceCrypto(String appKeyFilePath, String appKeyPassword, String appKeyAlias, String appKeyType,
+    //                  String systemKeyFilePath, String systemKeyFilePassword, String systemKeyAlias, String systemKeyType) throws KeyStoreException, FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException{
+    //     appKey=getKey(appKeyFilePath,appKeyPassword,appKeyAlias,appKeyType);
+    //     systemKeyPair=getKeyPair(systemKeyFilePath,systemKeyFilePassword,systemKeyAlias,systemKeyType);
+    // }
    
-    //@TODO switch these to PksUtils class
-    private Key getKey(String keyFilePath, String password, String keyAlias, String keyStoreType) throws KeyStoreException, FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException{
-       KeyStore ks = KeyStore.getInstance(keyStoreType);
-        char[] pwd= password.toCharArray();
-        try(java.io.FileInputStream fis = new java.io.FileInputStream(keyFilePath)){
-            ks.load(fis, pwd);
-            return ks.getKey(keyAlias, pwd);
-        } 
-    }
+    // //@TODO switch these to PksUtils class
+    // private Key getKey(String keyFilePath, String password, String keyAlias, String keyStoreType) throws KeyStoreException, FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException{
+    //    KeyStore ks = KeyStore.getInstance(keyStoreType);
+    //     char[] pwd= password.toCharArray();
+    //     try(java.io.FileInputStream fis = new java.io.FileInputStream(keyFilePath)){
+    //         ks.load(fis, pwd);
+    //         return ks.getKey(keyAlias, pwd);
+    //     } 
+    // }
     
-    //@TODO switch these to PksUtils class
-    private KeyPair getKeyPair(String keyFilePath, String password, String keyAlias, String keyStoreType) throws KeyStoreException, FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException{
-        KeyPair kp=null;
-        try(java.io.FileInputStream fis = new java.io.FileInputStream(keyFilePath)){
-            KeyStore ks = KeyStore.getInstance(keyStoreType);
-            char[] pwd= password.toCharArray();
-            ks.load(fis, pwd);
-            Key key = ks.getKey(keyAlias, pwd);
-            if(key instanceof PrivateKey){
-                Certificate cert = ks.getCertificate(keyAlias);
-                PublicKey publicKey = cert.getPublicKey();
-                kp = new KeyPair(publicKey, (PrivateKey) key);
-            }
-        }
-        return kp;
-    }
+    // //@TODO switch these to PksUtils class
+    // private KeyPair getKeyPair(String keyFilePath, String password, String keyAlias, String keyStoreType) throws KeyStoreException, FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException{
+    //     KeyPair kp=null;
+    //     try(java.io.FileInputStream fis = new java.io.FileInputStream(keyFilePath)){
+    //         KeyStore ks = KeyStore.getInstance(keyStoreType);
+    //         char[] pwd= password.toCharArray();
+    //         ks.load(fis, pwd);
+    //         Key key = ks.getKey(keyAlias, pwd);
+    //         if(key instanceof PrivateKey){
+    //             Certificate cert = ks.getCertificate(keyAlias);
+    //             PublicKey publicKey = cert.getPublicKey();
+    //             kp = new KeyPair(publicKey, (PrivateKey) key);
+    //         }
+    //     }
+    //     return kp;
+    // }
     
-    public String encryptSession(HashMap sessionMap, DodX509Certificate dodcert){
-        try{
-            byte[] data = assemblePayload(sessionMap,dodcert);
-            return encrypt(encryptWithIv(data,this.appKey),this.appKey);
-        }
-        catch(Exception ex){
-            throw new RuntimeException(ex.getMessage());
-        }
-    }
+    // public String encryptSession(HashMap sessionMap, DodX509Certificate dodcert){
+    //     try{
+    //         byte[] data = assemblePayload(sessionMap,dodcert);
+    //         return encrypt(encryptWithIv(data,this.appKey),this.appKey);
+    //     }
+    //     catch(Exception ex){
+    //         throw new RuntimeException(ex.getMessage());
+    //     }
+    // }
     
-    public HashMap decryptSession(String session, DodX509Certificate dodcert){
-        try{
-            byte[] dataWithIv = decrypt(session,this.appKey);
-            byte[] data = decryptWithIv(dataWithIv,this.appKey);
-            return (HashMap)decomposePayload(data, dodcert);
-        }
-        catch(Exception ex){
-            throw new RuntimeException(ex.getMessage());
-        }
-    }
+    // public HashMap decryptSession(String session, DodX509Certificate dodcert){
+    //     try{
+    //         byte[] dataWithIv = decrypt(session,this.appKey);
+    //         byte[] data = decryptWithIv(dataWithIv,this.appKey);
+    //         return (HashMap)decomposePayload(data, dodcert);
+    //     }
+    //     catch(Exception ex){
+    //         throw new RuntimeException(ex.getMessage());
+    //     }
+    // }
     
-    ////////////////////////////////
-    public byte[] assemblePayload(HashMap map, DodX509Certificate dodcert) throws IOException, NoSuchAlgorithmException, CertificateEncodingException, InvalidKeyException, SignatureException, NoSuchProviderException{
-        //serialize data to byte array
-        ByteArrayOutputStream b = new ByteArrayOutputStream();
-        ObjectOutputStream o = new ObjectOutputStream(b);
-        o.writeObject(map);
-        byte[] data=b.toByteArray();
+    // ////////////////////////////////
+    // public byte[] assemblePayload(HashMap map, DodX509Certificate dodcert) throws IOException, NoSuchAlgorithmException, CertificateEncodingException, InvalidKeyException, SignatureException, NoSuchProviderException{
+    //     //serialize data to byte array
+    //     ByteArrayOutputStream b = new ByteArrayOutputStream();
+    //     ObjectOutputStream o = new ObjectOutputStream(b);
+    //     o.writeObject(map);
+    //     byte[] data=b.toByteArray();
         
-        //get certificate hash
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        md.update(dodcert.cert.getEncoded()); 
-      	byte[] certHash = md.digest();
+    //     //get certificate hash
+    //     MessageDigest md = MessageDigest.getInstance("SHA1");
+    //     md.update(dodcert.cert.getEncoded()); 
+    //   	byte[] certHash = md.digest();
         
-        //get signature
-        byte[] signature = this.sign(certHash);
+    //     //get signature
+    //     byte[] signature = this.sign(certHash);
         
-        //
-        System.out.println(String.format("data:%d, certHash:%d, signature:%d",data.length,certHash.length,signature.length));
+    //     //
+    //     System.out.println(String.format("data:%d, certHash:%d, signature:%d",data.length,certHash.length,signature.length));
         
-        //assemble into payload
-        byte[] payload=new byte[data.length+certHash.length+signature.length];  //certhash = 20 bytes and signature=128 bytes
-        System.arraycopy(certHash, 0, payload, 0, certHash.length);
-        System.arraycopy(signature, 0, payload, certHash.length, signature.length);
-        System.arraycopy(data, 0, payload, certHash.length+signature.length, data.length);
-        return payload;        
-    }
+    //     //assemble into payload
+    //     byte[] payload=new byte[data.length+certHash.length+signature.length];  //certhash = 20 bytes and signature=128 bytes
+    //     System.arraycopy(certHash, 0, payload, 0, certHash.length);
+    //     System.arraycopy(signature, 0, payload, certHash.length, signature.length);
+    //     System.arraycopy(data, 0, payload, certHash.length+signature.length, data.length);
+    //     return payload;        
+    // }
     
-    public HashMap decomposePayload(byte[] data, DodX509Certificate dodcert) throws IOException, NoSuchAlgorithmException, CertificateEncodingException, InvalidKeyException, SignatureException, NoSuchProviderException, ClassNotFoundException{
-        //serialize data to byte array
-        byte[] certHash=Arrays.copyOfRange(data, 0, 20);
-        byte[] signature=Arrays.copyOfRange(data, 20, 20+signatureLength);
-        if(this.validSignature(certHash, signature)){
-            ByteArrayInputStream b = new ByteArrayInputStream(Arrays.copyOfRange(data,20+signatureLength,data.length));
-            ObjectInputStream o = new ObjectInputStream(b);
-            return (HashMap)o.readObject(); 
-        }
-        else{
-            throw new SecurityException("Invalid Signature in Payload");
-        }
-    }
+    // public HashMap decomposePayload(byte[] data, DodX509Certificate dodcert) throws IOException, NoSuchAlgorithmException, CertificateEncodingException, InvalidKeyException, SignatureException, NoSuchProviderException, ClassNotFoundException{
+    //     //serialize data to byte array
+    //     byte[] certHash=Arrays.copyOfRange(data, 0, 20);
+    //     byte[] signature=Arrays.copyOfRange(data, 20, 20+signatureLength);
+    //     if(this.validSignature(certHash, signature)){
+    //         ByteArrayInputStream b = new ByteArrayInputStream(Arrays.copyOfRange(data,20+signatureLength,data.length));
+    //         ObjectInputStream o = new ObjectInputStream(b);
+    //         return (HashMap)o.readObject(); 
+    //     }
+    //     else{
+    //         throw new SecurityException("Invalid Signature in Payload");
+    //     }
+    // }
     
-    /* Signing And Signature Validation****************************************/
+    // /* Signing And Signature Validation****************************************/
     
-    public byte[] sign(byte[] data) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, NoSuchProviderException {
-        byte[] signature = null;
-        //Signature dsa = Signature.getInstance("SHA1withRSA");
-        Signature dsa = Signature.getInstance("SHA256withRSA","BC");
-        dsa.initSign(systemKeyPair.getPrivate());
-        dsa.update(data, 0, data.length);
-        return dsa.sign();
-    }
+    // public byte[] sign(byte[] data) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, NoSuchProviderException {
+    //     byte[] signature = null;
+    //     //Signature dsa = Signature.getInstance("SHA1withRSA");
+    //     Signature dsa = Signature.getInstance("SHA256withRSA","BC");
+    //     dsa.initSign(systemKeyPair.getPrivate());
+    //     dsa.update(data, 0, data.length);
+    //     return dsa.sign();
+    // }
     
-    public boolean validSignature(byte[] data, byte[] signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, NoSuchProviderException{
-        //Signature dsa = Signature.getInstance("SHA1withRSA");
-        Signature dsa = Signature.getInstance("SHA256withRSA","BC");
-        dsa.initVerify(systemKeyPair.getPublic());
-        dsa.update(data);
-        return dsa.verify(signature);
-    }
+    // public boolean validSignature(byte[] data, byte[] signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, NoSuchProviderException{
+    //     //Signature dsa = Signature.getInstance("SHA1withRSA");
+    //     Signature dsa = Signature.getInstance("SHA256withRSA","BC");
+    //     dsa.initVerify(systemKeyPair.getPublic());
+    //     dsa.update(data);
+    //     return dsa.verify(signature);
+    // }
     
     
 

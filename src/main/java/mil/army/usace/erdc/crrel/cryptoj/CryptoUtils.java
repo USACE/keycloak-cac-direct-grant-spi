@@ -20,7 +20,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.util.encoders.Base64;
 
 /**
@@ -33,7 +33,7 @@ public class CryptoUtils {
     
     public static String encryptAes256FromPassword(String data,String password){
         try{
-            java.security.Security.addProvider(new BouncyCastleProvider());
+            java.security.Security.addProvider(new BouncyCastleFipsProvider());
             byte[] key = password.getBytes("UTF-8");
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
             key = sha.digest(key);
@@ -48,7 +48,7 @@ public class CryptoUtils {
     
     public static String decryptAes256FromPassword(String data,String password){
         try{
-            java.security.Security.addProvider(new BouncyCastleProvider());
+            java.security.Security.addProvider(new BouncyCastleFipsProvider());
             byte[] key = password.getBytes("UTF-8");
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
             key = sha.digest(key);

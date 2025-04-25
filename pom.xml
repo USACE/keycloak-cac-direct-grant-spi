@@ -59,7 +59,7 @@
     </dependency>
 
     <!-- Bouncy Castle Dependencies (Required for Cryptography & X.509) -->
-    <dependency>
+<!--     <dependency>
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcprov-jdk18on</artifactId>
         <version>1.76</version>
@@ -75,14 +75,19 @@
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcutil-jdk18on</artifactId>
         <version>1.76</version>
+    </dependency> -->
+    <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bc-fips</artifactId>
+        <version>2.1.0</version>
     </dependency>
 
     <!-- JBoss Resteasy Dependencies (Required for Resteasy SPI) -->
-    <dependency>
+<!--     <dependency>
         <groupId>org.jboss.resteasy</groupId>
         <artifactId>resteasy-core-spi</artifactId>
         <version>6.2.7.Final</version>
-    </dependency>
+    </dependency> -->
 
     <!-- Logging Dependency -->
     <dependency>
@@ -133,6 +138,9 @@
                                     <artifact>*:*</artifact>
                                     <excludes>
                                         <exclude>org/keycloak/**</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
                                 </filter>
                             </filters>

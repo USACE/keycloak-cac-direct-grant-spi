@@ -7,6 +7,7 @@ package mil.army.usace.erdc.crrel.cryptoj.x509;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
@@ -21,6 +22,7 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1String;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DEROctetString;
@@ -38,7 +40,7 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.PolicyInformation;
 //import org.bouncycastle.asn1.x509.X509Extensions;
-import org.bouncycastle.cert.X509CertificateHolder;
+// import org.bouncycastle.cert.X509CertificateHolder;
 //import org.bouncycastle.x509.extension.X509ExtensionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -296,16 +298,16 @@ public class CertificateInfo {
         return extCertUsage;
     }
     
-    public List<String> getCertificatePolicies() throws CertificateEncodingException, IOException{
-        X509CertificateHolder ch = new X509CertificateHolder(cert.getEncoded());
-        Extension certPol = ch.getExtension(Extension.certificatePolicies);
-        CertificatePolicies cp = CertificatePolicies.fromExtensions(ch.getExtensions());
-        List<String> polList = new ArrayList<>();
-        for(PolicyInformation pi:cp.getPolicyInformation()){
-            polList.add(pi.getPolicyIdentifier().toString());
-        }
-        return polList;
-    }
+    // public List<String> getCertificatePolicies() throws CertificateEncodingException, IOException{
+    //     X509CertificateHolder ch = new X509CertificateHolder(cert.getEncoded());
+    //     Extension certPol = ch.getExtension(Extension.certificatePolicies);
+    //     CertificatePolicies cp = CertificatePolicies.fromExtensions(ch.getExtensions());
+    //     List<String> polList = new ArrayList<>();
+    //     for(PolicyInformation pi:cp.getPolicyInformation()){
+    //         polList.add(pi.getPolicyIdentifier().toString());
+    //     }
+    //     return polList;
+    // }
     
     /*
     public List<String> getCrlDistributionPoints() throws CertificateParsingException, IOException {
@@ -350,21 +352,24 @@ public class CertificateInfo {
             if (type == 0){
                 ASN1InputStream decoder = new ASN1InputStream((byte[]) item.toArray()[1]);
                 ASN1Encodable encoded = decoder.readObject();
+                // encoded = ((DLSequence) encoded).getObjectAt(1);
                 encoded = ((DLSequence) encoded).getObjectAt(1);
-                encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
-                encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
+                if (encoded instanceof ASN1TaggedObject){
+                    encoded = ASN1TaggedObject.getInstance((ASN1TaggedObject) encoded, true);
+                    // encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
+                }
                 String identity="";
                 if(encoded instanceof DERUTF8String){
                     identity = ((DERUTF8String) encoded).getString();                
                 } else if (encoded instanceof DEROctetString) {
-                    //DEROctetString octString = ((DEROctetString)encoded);
-                    //InputStream inStream = octString.getOctetStream();
-                    //ASN1InputStream asnInputStream = new ASN1InputStream(decoder);
-                    //ASN1Primitive derObject = decoder.readObject();
-                    //if (derObject instanceof ASN1String){
-                    //    ASN1String s = (ASN1String)derObject;
-                    //    identity = s.getString();
-                    //}
+                    DEROctetString octString = ((DEROctetString)encoded);
+                    InputStream inStream = octString.getOctetStream();
+                    ASN1InputStream asnInputStream = new ASN1InputStream(decoder);
+                    ASN1Primitive derObject = decoder.readObject();
+                    if (derObject instanceof ASN1String){
+                       ASN1String s = (ASN1String)derObject;
+                       identity = s.getString();
+                    }
                     logger.warn("DEROctet Decoding is currently unsupported for Subject Alternative Name");
                 } else {
                    throw new CertificateParsingException("Invalid Subject Alternative Name");  
