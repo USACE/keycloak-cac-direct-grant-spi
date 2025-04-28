@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>mil.army.usace</groupId>
     <artifactId>dls_keycloak_plugins</artifactId>
-    <version>26.1.2</version>
+    <version>26.2.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-parent</artifactId>
-        <version>26.1.2</version>
+        <version>26.2.0</version>
     </parent>
 
 <dependencies>
@@ -27,35 +27,35 @@
     <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-core</artifactId>
-        <version>26.1.2</version>
+        <version>26.2.0</version>
         <scope>provided</scope>
     </dependency>
 
     <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-server-spi</artifactId>
-        <version>26.1.2</version>
+        <version>26.2.0</version>
         <scope>provided</scope>
     </dependency>
 
     <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-server-spi-private</artifactId>
-        <version>26.1.2</version>
+        <version>26.2.0</version>
         <scope>provided</scope>
     </dependency>
 
     <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-services</artifactId>
-        <version>26.1.2</version>
+        <version>26.2.0</version>
         <scope>provided</scope>
     </dependency>
 
     <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-common</artifactId>
-        <version>26.1.2</version>
+        <version>26.2.0</version>
     </dependency>
 
     <!-- Bouncy Castle Dependencies (Required for Cryptography & X.509) -->

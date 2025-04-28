@@ -351,25 +351,12 @@ public class CertificateInfo {
         for (List item : altNames) {
             Integer type = (Integer) item.get(0);
             if (type == 0){
-                // ASN1InputStream decoder = new ASN1InputStream((byte[]) item.toArray()[1]);
-                // ASN1Encodable encoded = decoder.readObject();
-                // // encoded = ((DLSequence) encoded).getObjectAt(1);
-                // encoded = ((DLSequence) encoded).getObjectAt(1);
-                // if (encoded instanceof ASN1TaggedObject){
-                //     encoded = ASN1TaggedObject.getInstance((ASN1TaggedObject) encoded, true);
-                //     // encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
-                // }
                 ASN1InputStream decoder = new ASN1InputStream((byte[]) item.toArray()[1]);
                 ASN1Encodable encoded = decoder.readObject();
                 
-                // encoded = ((DLSequence) encoded).getObjectAt(1);
-                // encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
-                // encoded = ((ASN1TaggedObject) encoded).getExplicitBaseObject();
-
-                encoded = ((DLTaggedObject) encoded).getLoadedObject();
-                // logger.warn("");
-                // encoded = ASN1TaggedObject.getInstance(encoded);
-                // encoded = ASN1TaggedObject.getInstance(encoded);
+                encoded = ((DLTaggedObject) encoded).getObject();
+                encoded = ((DLSequence) encoded).getObjectAt(1);
+                encoded = ((ASN1TaggedObject) encoded).getObject();
                 String identity="";
                 if(encoded instanceof DERUTF8String){
                     identity = ((DERUTF8String) encoded).getString();                
@@ -384,8 +371,6 @@ public class CertificateInfo {
                     }
                     logger.warn("DEROctet Decoding is currently unsupported for Subject Alternative Name");
                 } else {
-                   logger.warn("CLASS"+encoded.getClass().getName());
-                   logger.warn("STRANG"+encoded.toString());
                    throw new CertificateParsingException("Invalid Subject Alternative Name");  
                 }
                 identities.add(identity);
